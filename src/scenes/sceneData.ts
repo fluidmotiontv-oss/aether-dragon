@@ -2,6 +2,16 @@ import { SceneConfig, SceneId } from '../types';
 
 export const SCENES: SceneConfig[] = [
   {
+    id: 'cyber_dragon_awakening',
+    title: 'Cyber Dragon Awakening & World Saver',
+    category: 'Dragon 9 & Cyber Legends',
+    description: 'The ancient Cyber Dragon awakens on a high-tech energy pedestal, unleashing cosmic plasma beams, energetic wing pulses, and world-saving shockwaves.',
+    defaultParticles: 20000,
+    primaryColor: '#00F0FF',
+    secondaryColor: '#FF0055',
+    tags: ['Cyber Dragon', 'World Saver', 'Cosmic Beam', 'Plasma Pulse', 'Dragon 9']
+  },
+  {
     id: 'cyberpunk',
     title: 'Neon Cyberpunk Metropolis',
     category: 'Sci-Fi & Urban',

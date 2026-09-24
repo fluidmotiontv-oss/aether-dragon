@@ -7,6 +7,9 @@ import { InspectorPanel } from './components/desktop/InspectorPanel';
 import { AudioControlPanel } from './components/desktop/AudioControlPanel';
 import { PerformanceHud } from './components/desktop/PerformanceHud';
 import { ScreenshotModal } from './components/desktop/ScreenshotModal';
+import { SeedanceStudioPanel } from './components/desktop/SeedanceStudioPanel';
+import { AiStoryPanel } from './components/desktop/AiStoryPanel';
+import { EighteenMinCinemaOverlay } from './components/desktop/EighteenMinCinemaOverlay';
 
 import { getSceneConfig } from './scenes/sceneData';
 import { ThreeSceneManager } from './scenes/threeSceneManager';
@@ -20,33 +23,34 @@ import {
 } from './types';
 
 export default function App() {
-  const [sceneId, setSceneId] = useState<SceneId>('cyberpunk');
+  const [sceneId, setSceneId] = useState<SceneId>('cyber_dragon_awakening');
   const [cameraPreset, setCameraPreset] = useState<CameraPreset>('orbit');
-  const [activePanel, setActivePanel] = useState<ActivePanel | null>('scenes');
+  const [activePanel, setActivePanel] = useState<ActivePanel | null>('seedance_studio');
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null);
+  const [master18MinPackage, setMaster18MinPackage] = useState<any | null>(null);
 
   const [lightingConfig, setLightingConfig] = useState<LightingConfig>({
     dirLightX: 15,
     dirLightY: 30,
     dirLightZ: 20,
-    dirLightColor: '#ffffff',
-    dirLightIntensity: 1.5,
-    ambientColor: '#12182b',
+    dirLightColor: '#00f0ff',
+    dirLightIntensity: 1.8,
+    ambientColor: '#ff0055',
     ambientIntensity: 0.8,
-    fogDensity: 0.018,
-    fogColor: '#050714',
+    fogDensity: 0.012,
+    fogColor: '#02040d',
     wireframe: false,
     shadows: true,
     autoRotate: true,
     autoRotateSpeed: 1.0,
     fov: 55,
-    bloomGlow: 1.2,
-    chromaticAberration: 0.2,
-    particleCount: 15000,
-    particleSpeed: 1.0,
+    bloomGlow: 1.5,
+    chromaticAberration: 0.3,
+    particleCount: 20000,
+    particleSpeed: 1.2,
     waveAmplitude: 1.0,
-    audioReactivity: 1.2
+    audioReactivity: 1.4
   });
 
   const [stats, setStats] = useState<PerformanceStats>({
@@ -75,10 +79,14 @@ export default function App() {
       globalAudioSynth.stop();
       setIsAudioPlaying(false);
     } else {
-      globalAudioSynth.playPreset('synthwave_pulse', 0.5);
+      if (sceneId === 'cyber_dragon_awakening') {
+        globalAudioSynth.playPreset('dragon_awakening', 0.6);
+      } else {
+        globalAudioSynth.playPreset('synthwave_pulse', 0.5);
+      }
       setIsAudioPlaying(true);
     }
-  }, [isAudioPlaying]);
+  }, [isAudioPlaying, sceneId]);
 
   const handleSelectScene = useCallback((newSceneId: SceneId) => {
     setSceneId(newSceneId);
@@ -93,6 +101,9 @@ export default function App() {
     // Auto switch audio preset if audio is on
     if (isAudioPlaying) {
       switch (newSceneId) {
+        case 'cyber_dragon_awakening':
+          globalAudioSynth.playPreset('dragon_awakening');
+          break;
         case 'cyberpunk':
           globalAudioSynth.playPreset('synthwave_pulse');
           break;
@@ -116,6 +127,44 @@ export default function App() {
       setSnapshotUrl(dataUrl);
     }
   }, [manager]);
+
+  const handleTriggerDragonAction = useCallback((action: 'awaken' | 'beam' | 'shield' | 'save_world') => {
+    // Switch to Cyber Dragon scene if not active
+    if (sceneId !== 'cyber_dragon_awakening') {
+      handleSelectScene('cyber_dragon_awakening');
+    }
+
+    // Boost audio & particle effects dynamically
+    if (!isAudioPlaying) {
+      globalAudioSynth.playPreset('dragon_awakening', 0.7);
+      setIsAudioPlaying(true);
+    }
+
+    if (action === 'save_world') {
+      setLightingConfig((prev) => ({
+        ...prev,
+        particleSpeed: 2.5,
+        audioReactivity: 2.0,
+        dirLightIntensity: 3.0,
+        bloomGlow: 2.0
+      }));
+      setCameraPreset('cinematic_wide');
+    } else if (action === 'beam') {
+      setLightingConfig((prev) => ({
+        ...prev,
+        particleSpeed: 1.8,
+        audioReactivity: 1.6
+      }));
+      setCameraPreset('first_person');
+    } else {
+      setLightingConfig((prev) => ({
+        ...prev,
+        particleSpeed: 1.2,
+        audioReactivity: 1.4
+      }));
+      setCameraPreset('orbit');
+    }
+  }, [sceneId, isAudioPlaying, handleSelectScene]);
 
   return (
     <div className="w-screen h-screen flex flex-col bg-slate-950 overflow-hidden font-sans text-slate-100 select-none">
@@ -143,6 +192,15 @@ export default function App() {
           />
         )}
 
+        {/* Seedance 2.5 Pipeline Panel */}
+        {activePanel === 'seedance_studio' && (
+          <SeedanceStudioPanel
+            onClose={() => setActivePanel(null)}
+            onTriggerDragonAction={handleTriggerDragonAction}
+            onLaunch18MinCinema={setMaster18MinPackage}
+          />
+        )}
+
         {/* 3D Canvas Viewport */}
         <div className="flex-1 w-full h-full relative">
           <CanvasContainer
@@ -164,6 +222,24 @@ export default function App() {
             isAudioPlaying={isAudioPlaying}
           />
         </div>
+
+        {/* AI Story Panel */}
+        {activePanel === 'ai_story' && (
+          <AiStoryPanel
+            onClose={() => setActivePanel(null)}
+            onTriggerDragonAction={handleTriggerDragonAction}
+            onLaunch18MinCinema={setMaster18MinPackage}
+          />
+        )}
+
+        {/* 18-Minute Cinema Live Overlay Player */}
+        {master18MinPackage && (
+          <EighteenMinCinemaOverlay
+            masterPackage={master18MinPackage}
+            onClose={() => setMaster18MinPackage(null)}
+            onTriggerDragonAction={handleTriggerDragonAction}
+          />
+        )}
 
         {/* Right Floating OS Panel: Inspector / Audio Controls */}
         {(activePanel === 'inspector' || activePanel === 'camera' || activePanel === 'particles') && (

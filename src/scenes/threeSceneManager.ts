@@ -201,6 +201,9 @@ export class ThreeSceneManager {
     this.mouseTargetLight = null;
 
     switch (sceneId) {
+      case 'cyber_dragon_awakening':
+        this.buildCyberDragonScene();
+        break;
       case 'cyberpunk':
         this.buildCyberpunkScene();
         break;
@@ -217,6 +220,274 @@ export class ThreeSceneManager {
         this.buildTesseractScene();
         break;
     }
+  }
+
+  // ================= SCENE 0: CYBER DRAGON AWAKENING =================
+  private buildCyberDragonScene() {
+    this.scene.background = new THREE.Color('#02040d');
+    this.fog.color.set('#02040d');
+    this.fog.density = 0.012;
+
+    // 1. High-Tech Hexagonal Energy Altar
+    const altarGeo = new THREE.CylinderGeometry(16, 20, 3, 6);
+    const altarMat = new THREE.MeshStandardMaterial({
+      color: 0x070e20,
+      roughness: 0.2,
+      metalness: 0.9,
+      wireframe: this.config.wireframe
+    });
+    const altar = new THREE.Mesh(altarGeo, altarMat);
+    altar.position.y = -1.5;
+    altar.receiveShadow = true;
+    this.sceneGroup.add(altar);
+
+    // Glowing Neon Hex Grid Floor
+    const altarGrid = new THREE.GridHelper(40, 20, 0x00f0ff, 0xff0055);
+    altarGrid.position.y = 0.05;
+    this.sceneGroup.add(altarGrid);
+
+    // Rotating Energy Rings around pedestal
+    for (let r = 0; r < 3; r++) {
+      const ringGeo = new THREE.TorusGeometry(12 + r * 4, 0.3, 12, 48);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: r % 2 === 0 ? 0x00f0ff : 0xff0055,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.7
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = 0.2 + r * 0.1;
+      this.sceneGroup.add(ring);
+
+      this.animatedObjects.push({
+        obj: ring,
+        update: (t) => {
+          ring.rotation.z = (r % 2 === 0 ? 1 : -1) * t * (0.4 + r * 0.2);
+        }
+      });
+    }
+
+    // 2. THE CYBER DRAGON MODEL GROUP
+    const dragonGroup = new THREE.Group();
+    dragonGroup.position.set(0, 8, 0);
+
+    // Dragon Core Spine & Body Segments
+    const bodySegments: THREE.Mesh[] = [];
+    const segmentCount = 9;
+    for (let i = 0; i < segmentCount; i++) {
+      const scale = 1 - (i / segmentCount) * 0.55;
+      const geo = new THREE.IcosahedronGeometry(2.8 * scale, 1);
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0x0a1628,
+        emissive: i === 0 ? 0x00f0ff : 0xff0055,
+        emissiveIntensity: 0.6,
+        metalness: 0.9,
+        roughness: 0.1,
+        wireframe: this.config.wireframe
+      });
+      const segment = new THREE.Mesh(geo, mat);
+      segment.position.set(0, 0, -i * 2.2);
+      dragonGroup.add(segment);
+      bodySegments.push(segment);
+
+      // Spine Spikes
+      const spikeGeo = new THREE.ConeGeometry(0.6 * scale, 2.5 * scale, 4);
+      const spikeMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+      const spike = new THREE.Mesh(spikeGeo, spikeMat);
+      spike.position.set(0, 2.2 * scale, 0);
+      segment.add(spike);
+    }
+
+    // Dragon Head Assembly
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 1.2, 2.5);
+
+    // Skull
+    const skullGeo = new THREE.ConeGeometry(2.2, 4.5, 5);
+    skullGeo.rotateX(Math.PI / 2);
+    const skullMat = new THREE.MeshStandardMaterial({
+      color: 0x0e1f38,
+      emissive: 0x00f0ff,
+      emissiveIntensity: 0.7,
+      metalness: 0.9,
+      roughness: 0.1
+    });
+    const skull = new THREE.Mesh(skullGeo, skullMat);
+    headGroup.add(skull);
+
+    // Cyber Horns
+    for (let side = -1; side <= 1; side += 2) {
+      const hornGeo = new THREE.ConeGeometry(0.5, 4, 4);
+      hornGeo.rotateX(Math.PI / 3);
+      hornGeo.rotateY(side * 0.4);
+      const hornMat = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+      const horn = new THREE.Mesh(hornGeo, hornMat);
+      horn.position.set(side * 1.4, 1.5, -1);
+      headGroup.add(horn);
+    }
+
+    // Glowing Laser Eyes
+    for (let side = -1; side <= 1; side += 2) {
+      const eyeGeo = new THREE.SphereGeometry(0.4, 12, 12);
+      const eyeMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+      const eye = new THREE.Mesh(eyeGeo, eyeMat);
+      eye.position.set(side * 1.1, 0.6, 1.2);
+      headGroup.add(eye);
+    }
+
+    // Lower Jaw (opens when shooting beam)
+    const jawGeo = new THREE.BoxGeometry(1.6, 0.6, 3);
+    const jawMat = new THREE.MeshStandardMaterial({ color: 0x060c18, metalness: 0.9 });
+    const jaw = new THREE.Mesh(jawGeo, jawMat);
+    jaw.position.set(0, -0.8, 1);
+    headGroup.add(jaw);
+
+    dragonGroup.add(headGroup);
+
+    // 3. CYBER WINGS (LEFT & RIGHT)
+    const wingGroups: THREE.Group[] = [];
+    for (let side = -1; side <= 1; side += 2) {
+      const wingGroup = new THREE.Group();
+      wingGroup.position.set(side * 2.2, 1, -1);
+
+      // Main Strut
+      const strutGeo = new THREE.CylinderGeometry(0.4, 0.2, 12, 8);
+      strutGeo.rotateZ(side * Math.PI / 3);
+      const strutMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, metalness: 0.9 });
+      const strut = new THREE.Mesh(strutGeo, strutMat);
+      strut.position.set(side * 4, 3, 0);
+      wingGroup.add(strut);
+
+      // Energy Wing Membrane (Translucent Polygons)
+      const membraneGeo = new THREE.BufferGeometry();
+      const vertices = new Float32Array([
+        0, 0, 0,
+        side * 8, 6, -2,
+        side * 12, 1, -5,
+
+        0, 0, 0,
+        side * 12, 1, -5,
+        side * 7, -4, -3
+      ]);
+      membraneGeo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+      membraneGeo.computeVertexNormals();
+
+      const membraneMat = new THREE.MeshBasicMaterial({
+        color: side === 1 ? 0x00f0ff : 0xff0055,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.55,
+        wireframe: true
+      });
+      const membrane = new THREE.Mesh(membraneGeo, membraneMat);
+      wingGroup.add(membrane);
+
+      dragonGroup.add(wingGroup);
+      wingGroups.push(wingGroup);
+    }
+
+    // 4. COSMIC PLASMA BEAM (Fired when Dragon Saves the World)
+    const beamGeo = new THREE.CylinderGeometry(1.2, 0.3, 35, 16);
+    beamGeo.rotateX(Math.PI / 2);
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: 0x00f0ff,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending
+    });
+    const plasmaBeam = new THREE.Mesh(beamGeo, beamMat);
+    plasmaBeam.position.set(0, 0.5, 20);
+    headGroup.add(plasmaBeam);
+
+    // 5. WORLD-SAVING SHOCKWAVE SHIELD
+    const shieldGeo = new THREE.IcosahedronGeometry(18, 2);
+    const shieldMat = new THREE.MeshBasicMaterial({
+      color: 0x00f0ff,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.3,
+      blending: THREE.AdditiveBlending
+    });
+    const worldShield = new THREE.Mesh(shieldGeo, shieldMat);
+    worldShield.position.set(0, 6, 0);
+    this.sceneGroup.add(worldShield);
+
+    this.sceneGroup.add(dragonGroup);
+
+    // Dragon Animate Loop
+    this.animatedObjects.push({
+      obj: dragonGroup,
+      update: (t, bass) => {
+        // Floating hover
+        dragonGroup.position.y = 8 + Math.sin(t * 1.5) * 1.5;
+        dragonGroup.rotation.z = Math.sin(t * 0.8) * 0.08;
+
+        // Spine Wave
+        bodySegments.forEach((seg, idx) => {
+          seg.position.x = Math.sin(t * 2.5 - idx * 0.4) * 0.8;
+          seg.rotation.y = Math.cos(t * 2 - idx * 0.3) * 0.15;
+          if (idx === 0) {
+            seg.scale.setScalar(1 + bass * 0.3);
+          }
+        });
+
+        // Wing Flap
+        wingGroups.forEach((wing, idx) => {
+          const dir = idx === 0 ? -1 : 1;
+          wing.rotation.z = Math.sin(t * 3) * 0.35 * dir;
+          wing.rotation.x = Math.cos(t * 2) * 0.15;
+        });
+
+        // Jaw Movement & Beam Pulsing
+        jaw.position.y = -0.8 - Math.abs(Math.sin(t * 2)) * 0.5;
+        beamMat.opacity = 0.5 + Math.sin(t * 8) * 0.4 + bass * 0.5;
+        plasmaBeam.scale.set(1 + bass * 0.8, 1 + bass * 0.5, 1 + bass * 0.8);
+
+        // World Shield pulse
+        worldShield.rotation.y = t * 0.3;
+        worldShield.scale.setScalar(1 + Math.sin(t * 1.2) * 0.08 + bass * 0.2);
+      }
+    });
+
+    // 6. SWIRLING DRAGON EMBER PARTICLES
+    const count = this.config.particleCount;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+
+    const cCyan = new THREE.Color(0x00f0ff);
+    const cMagenta = new THREE.Color(0xff0055);
+
+    for (let i = 0; i < count; i++) {
+      const radius = 5 + Math.random() * 45;
+      const angle = Math.random() * Math.PI * 2;
+      const height = (Math.random() - 0.2) * 60;
+
+      positions[i * 3] = Math.cos(angle) * radius;
+      positions[i * 3 + 1] = height;
+      positions[i * 3 + 2] = Math.sin(angle) * radius;
+
+      const mixCol = Math.random() > 0.5 ? cCyan : cMagenta;
+      colors[i * 3] = mixCol.r;
+      colors[i * 3 + 1] = mixCol.g;
+      colors[i * 3 + 2] = mixCol.b;
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const particleMat = new THREE.PointsMaterial({
+      size: 0.35,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending
+    });
+
+    this.particleSystem = new THREE.Points(geometry, particleMat);
+    this.particlePositions = positions;
+    this.sceneGroup.add(this.particleSystem);
   }
 
   // ================= SCENE 1: NEON CYBERPUNK METROPOLIS =================
@@ -842,7 +1113,19 @@ export class ThreeSceneManager {
       const pSpeed = this.config.particleSpeed;
 
       for (let i = 0; i < count; i++) {
-        if (this.currentSceneId === 'cyberpunk') {
+        if (this.currentSceneId === 'cyber_dragon_awakening') {
+          // Swirling dragon embers rising up
+          const x = positions[i * 3];
+          const z = positions[i * 3 + 2];
+          const r = Math.sqrt(x * x + z * z);
+          const angle = Math.atan2(z, x) + 0.02 * pSpeed;
+          positions[i * 3] = Math.cos(angle) * r;
+          positions[i * 3 + 2] = Math.sin(angle) * r;
+          positions[i * 3 + 1] += 0.2 * pSpeed;
+          if (positions[i * 3 + 1] > 50) {
+            positions[i * 3 + 1] = -5;
+          }
+        } else if (this.currentSceneId === 'cyberpunk') {
           // Rain falling down
           positions[i * 3 + 1] -= (1.5 + (i % 5) * 0.5) * pSpeed;
           if (positions[i * 3 + 1] < 0) {

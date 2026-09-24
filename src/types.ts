@@ -1,4 +1,5 @@
 export type SceneId = 
+  | 'cyber_dragon_awakening'
   | 'cyberpunk' 
   | 'quantum_blackhole' 
   | 'zen_crystal_island' 
@@ -7,7 +8,7 @@ export type SceneId =
 
 export type CameraPreset = 'orbit' | 'cinematic_wide' | 'isometric' | 'top_down' | 'first_person';
 
-export type AudioPreset = 'synthwave_pulse' | 'cosmic_theta' | 'zen_crystal' | 'cyber_bass' | 'off';
+export type AudioPreset = 'synthwave_pulse' | 'cosmic_theta' | 'zen_crystal' | 'cyber_bass' | 'dragon_awakening' | 'off';
 
 export interface SceneConfig {
   id: SceneId;
@@ -52,4 +53,13 @@ export interface PerformanceStats {
   textures: number;
 }
 
-export type ActivePanel = 'scenes' | 'inspector' | 'particles' | 'audio' | 'camera' | 'stats';
+export type ActivePanel = 'scenes' | 'inspector' | 'particles' | 'audio' | 'camera' | 'stats' | 'seedance_studio' | 'ai_story';
+
+export interface SeedanceStep {
+  id: number;
+  title: string;
+  subtitle: string;
+  description: string;
+  details: string[];
+}
+

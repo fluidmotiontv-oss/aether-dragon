@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivePanel, CameraPreset } from '../../types';
 import { 
+  Box,
   Layers, 
   Sun, 
   Sparkles, 
@@ -25,6 +26,8 @@ export const DesktopDock: React.FC<DesktopDockProps> = ({
   isAudioPlaying
 }) => {
   const dockItems: { id: ActivePanel; label: string; icon: React.ReactNode; badge?: string }[] = [
+    { id: 'seedance_studio', label: 'Seedance 2.5 Pipeline', icon: <Box className="w-5 h-5 text-cyan-400" /> },
+    { id: 'ai_story', label: 'AI Story Script', icon: <Sparkles className="w-5 h-5 text-rose-400" /> },
     { id: 'scenes', label: 'Scene Gallery', icon: <Layers className="w-5 h-5" /> },
     { id: 'inspector', label: 'Shaders & Light', icon: <Sun className="w-5 h-5" /> },
     { id: 'particles', label: 'Particle FX', icon: <Sparkles className="w-5 h-5 text-amber-400" /> },

@@ -180,6 +180,34 @@ export const DesktopTopBar: React.FC<DesktopTopBarProps> = ({
 
       {/* Right: Quick Action Controls & Clock */}
       <div className="flex items-center space-x-2">
+        {/* Seedance 2.5 Studio Button */}
+        <button
+          onClick={() => onTogglePanel('seedance_studio')}
+          className={`p-1.5 rounded-lg border transition-all flex items-center space-x-1 ${
+            activePanel === 'seedance_studio'
+              ? 'bg-cyan-500/20 border-cyan-500/80 text-cyan-300 shadow-[0_0_12px_rgba(0,240,255,0.3)]'
+              : 'bg-slate-800/60 border-slate-700/60 text-slate-300 hover:bg-slate-800'
+          }`}
+          title="Seedance 2.5 Cartoon Pipeline"
+        >
+          <Box className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="hidden sm:inline text-[11px] font-medium">Seedance 2.5</span>
+        </button>
+
+        {/* AI Story Button */}
+        <button
+          onClick={() => onTogglePanel('ai_story')}
+          className={`p-1.5 rounded-lg border transition-all flex items-center space-x-1 ${
+            activePanel === 'ai_story'
+              ? 'bg-rose-500/20 border-rose-500/80 text-rose-300 shadow-[0_0_12px_rgba(255,0,85,0.3)]'
+              : 'bg-slate-800/60 border-slate-700/60 text-slate-300 hover:bg-slate-800'
+          }`}
+          title="Gemini AI Story Generator"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-rose-400" />
+          <span className="hidden sm:inline text-[11px] font-medium">AI Story</span>
+        </button>
+
         {/* Scene Selector Toggle Button */}
         <button
           onClick={() => onTogglePanel('scenes')}

@@ -68,6 +68,9 @@ export class AudioSynthesizer {
       case 'cyber_bass':
         this.setupCyberBass();
         break;
+      case 'dragon_awakening':
+        this.setupDragonAwakening();
+        break;
       default:
         break;
     }
@@ -227,6 +230,130 @@ export class AudioSynthesizer {
     lfo.start();
 
     this.activeOscillators.push(bassOsc, lfo);
+  }
+
+  private setupDragonAwakening() {
+    if (!this.ctx || !this.masterGain) return;
+
+    // Sub-bass rumble (40Hz sawtooth)
+    const rumble = this.ctx.createOscillator();
+    rumble.type = 'sawtooth';
+    rumble.frequency.setValueAtTime(40, this.ctx.currentTime);
+
+    const rumbleFilter = this.ctx.createBiquadFilter();
+    rumbleFilter.type = 'lowpass';
+    rumbleFilter.frequency.setValueAtTime(150, this.ctx.currentTime);
+
+    const rumbleGain = this.ctx.createGain();
+    rumbleGain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+
+    rumble.connect(rumbleFilter);
+    rumbleFilter.connect(rumbleGain);
+    rumbleGain.connect(this.masterGain);
+    rumble.start();
+
+    this.activeOscillators.push(rumble);
+
+    // Cosmic Synth Arp (Pentatonic Dragon Motif: D3, F3, G3, A3, C4)
+    const dragonNotes = [146.83, 174.61, 196.00, 220.00, 261.63, 293.66, 349.23, 392.00];
+    let noteIndex = 0;
+
+    const dragonInterval = window.setInterval(() => {
+      if (!this.ctx || !this.masterGain || !this.isPlaying) return;
+
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = noteIndex % 2 === 0 ? 'sawtooth' : 'sine';
+      osc.frequency.setValueAtTime(dragonNotes[noteIndex % dragonNotes.length], this.ctx.currentTime);
+
+      gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.45);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.46);
+
+      noteIndex++;
+    }, 140);
+
+    this.activeIntervals.push(dragonInterval);
+  }
+
+  public playRimshot() {
+    if (!this.ctx || !this.masterGain) return;
+    const now = this.ctx.currentTime;
+    // Snare tap 1
+    const osc1 = this.ctx.createOscillator();
+    const g1 = this.ctx.createGain();
+    osc1.frequency.setValueAtTime(220, now);
+    osc1.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+    g1.gain.setValueAtTime(0.3, now);
+    g1.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+    osc1.connect(g1);
+    g1.connect(this.masterGain);
+    osc1.start(now);
+    osc1.stop(now + 0.08);
+
+    // Snare tap 2
+    const osc2 = this.ctx.createOscillator();
+    const g2 = this.ctx.createGain();
+    osc2.frequency.setValueAtTime(260, now + 0.12);
+    osc2.frequency.exponentialRampToValueAtTime(90, now + 0.2);
+    g2.gain.setValueAtTime(0.3, now + 0.12);
+    g2.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+    osc2.connect(g2);
+    g2.connect(this.masterGain);
+    osc2.start(now + 0.12);
+    osc2.stop(now + 0.2);
+
+    // Cymbal crash
+    const osc3 = this.ctx.createOscillator();
+    const g3 = this.ctx.createGain();
+    osc3.type = 'sawtooth';
+    osc3.frequency.setValueAtTime(800, now + 0.24);
+    osc3.frequency.exponentialRampToValueAtTime(2000, now + 0.4);
+    g3.gain.setValueAtTime(0.25, now + 0.24);
+    g3.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+    osc3.connect(g3);
+    g3.connect(this.masterGain);
+    osc3.start(now + 0.24);
+    osc3.stop(now + 0.55);
+  }
+
+  public playDragonBelch() {
+    if (!this.ctx || !this.masterGain) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(160, now);
+    osc.frequency.exponentialRampToValueAtTime(45, now + 0.6);
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.65);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(now);
+    osc.stop(now + 0.65);
+  }
+
+  public playSirenWhistle() {
+    if (!this.ctx || !this.masterGain) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(300, now);
+    osc.frequency.linearRampToValueAtTime(1200, now + 0.3);
+    osc.frequency.linearRampToValueAtTime(200, now + 0.6);
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(now);
+    osc.stop(now + 0.6);
   }
 
   public stop() {
